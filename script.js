@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const roleta = setInterval(() => {
             // Mostra letra aleatória visualmente
-            const visual = pool[Math.floor(Math.random() * pool.length)];
+            const visual = pool[Math.floor(randomControlado() * pool.length)];
             ui.display.innerText = visual;
             tocarSom('click');
             giros++;
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(roleta);
                 
                 // Escolha FINAL Real
-                const indexReal = Math.floor(Math.random() * pool.length);
+                const indexReal = MMath.floor(randomControlado() * pool.length);
                 const letraEscolhida = pool[indexReal];
                 
                 finalizarSorteio(letraEscolhida);
@@ -615,3 +615,85 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+
+// --- FUNÇÃO DE VALIDAÇÃO (AUTO-CORREÇÃO) ---
+function conferirRespostas() {
+    const letraSorteada = ui.display.innerText.trim().toUpperCase();
+
+    ui.gameInputs.forEach(input => {
+        const resposta = input.value.trim().toUpperCase();
+        
+        // Se estiver vazio, deixa cinza
+        if (resposta === "") {
+            input.style.borderColor = "#555"; 
+            return;
+        }
+
+        // Verifica a primeira letra
+        if (resposta.startsWith(letraSorteada)) {
+            // CERTO: Borda Verde Neon e fundo levemente verde
+            input.style.borderColor = "#00ff00";
+            input.style.backgroundColor = "rgba(0, 255, 0, 0.1)";
+        } else {
+            // ERRADO: Borda Vermelha e animação de tremor
+            input.style.borderColor = "#ff0000";
+            input.style.backgroundColor = "rgba(255, 0, 0, 0.1)";
+            
+            // Adiciona classe de erro (opcional, se quiser animar no CSS)
+            input.classList.add('erro-input');
+        }
+    });
+}
+
+
+// --- SISTEMA MULTIPLAYER (SALA SINCRONIZADA) ---
+    
+    // Variável para guardar a semente (o código da sala)
+    let seedAtual = null;
+
+    // Elemento do botão (coloque isso na lista 'ui' lá em cima se preferir)
+    const btnMultiplayer = document.getElementById('btn-multiplayer');
+
+    // Gerador de Números Pseudo-Aleatórios (Seeded RNG)
+    // Isso garante que a sequência de letras seja IGUAL para quem tem o mesmo código
+    function randomControlado() {
+        if (seedAtual === null) {
+            return Math.random(); // Modo normal (sozinho)
+        }
+        
+        // Algoritmo simples de hash para gerar números baseados na string da sala
+        // Cada vez que chama, ele avança o cálculo para a próxima letra ser diferente da anterior
+        let t = seedAtual += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+
+    if(btnMultiplayer) {
+        btnMultiplayer.addEventListener('click', () => {
+            const codigoSala = prompt("Digite um código para a sala (ex: AMIGOS123).\nTodos devem digitar o MESMO código para pegar as mesmas letras!");
+            
+            if (codigoSala && codigoSala.trim() !== "") {
+                // Transforma o texto em um número inicial
+                let hash = 0;
+                for (let i = 0; i < codigoSala.length; i++) {
+                    hash = ((hash << 5) - hash) + codigoSala.charCodeAt(i);
+                    hash |= 0;
+                }
+                seedAtual = hash;
+                
+                alert(`Sala "${codigoSala}" ativada!\nAgora o sorteio será igual para todos.`);
+                btnMultiplayer.innerText = `Sala: ${codigoSala}`;
+                
+                // Reinicia o histórico para começar sincronizado
+                estado.usadas = [];
+                ui.listaHistorico.innerHTML = '';
+                ui.contador.innerText = '0';
+            } else {
+                seedAtual = null;
+                btnMultiplayer.innerText = "👥 Online";
+                alert("Modo aleatório (sozinho) ativado.");
+            }
+        });
+    }
