@@ -38,7 +38,98 @@ body {
     border: 1px solid #333;
     position: relative;
 }
+/* --- ESTILOS DO MODO JOGO --- */
 
+/* Esconde elementos quando necessário */
+.hidden { display: none !important; }
+
+/* Botão de Alternar Modo */
+.header-icons { display: flex; gap: 10px; }
+
+/* Grid de Inputs (A folha do jogo) */
+.game-sheet {
+    background: #25252e;
+    padding: 15px;
+    border-radius: 15px;
+    margin: 15px 0;
+    border: 1px solid #444;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 colunas no celular */
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-bottom: 2px;
+    text-align: left;
+    margin-left: 5px;
+}
+
+.game-input {
+    width: 100%;
+    background: #15151a;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.game-input:focus {
+    border-color: #BB86FC;
+    box-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+}
+
+.game-input:disabled {
+    background: #111;
+    color: #555;
+    border-color: #333;
+}
+
+/* Botão STOP Gigante */
+.stop-btn {
+    width: 100%;
+    background: #cf6679;
+    color: #000;
+    font-size: 1.2rem;
+    padding: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 0 #b00020;
+}
+
+.stop-btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.stop-btn:disabled {
+    background: #333;
+    color: #555;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Ajuste do display da letra no modo jogo */
+.compact-mode #display-letra {
+    height: 80px;
+    font-size: 3.5rem;
+    margin: 5px 0;
+}
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 h2 { color: #BB86FC; letter-spacing: 1px; margin: 0; }
 .icon-btn { background: none; border: none; color: #666; font-size: 1.5rem; cursor: pointer; }
@@ -155,7 +246,7 @@ button { padding: 12px; border-radius: 10px; font-weight: bold; border: none; cu
     <div class="timer-container">
         <div id="tempo-restante">00:00</div>
         <div class="timer-controls">
-            <select id="config-segundos">
+            <select id="config-segundos" title="Selecione a duração do timer">
                 <option value="30">30s</option>
                 <option value="60" selected>1m</option>
                 <option value="120">2m</option>
@@ -170,12 +261,12 @@ button { padding: 12px; border-radius: 10px; font-weight: bold; border: none; cu
         <div class="category-box">
             <span class="cat-label">Sugestão:</span>
             <div id="tema-atual" class="cat-text">...</div>
-            <button id="btn-trocar-tema" class="small-btn">🎲</button>
+            <button type="button" id="btn-trocar-tema" class="small-btn">🎲</button>
         </div>
         
         <div class="controls-qty">
             <label>Qtd Letras:</label>
-            <input type="number" id="quantidade" value="1" min="1" max="1">
+            <input type="number" id="quantidade" value="1" min="1" max="1" title="Quantidade de letras">
         </div>
 
         <div class="history-container">
