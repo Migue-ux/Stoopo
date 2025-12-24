@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const roleta = setInterval(() => {
             // Mostra letra aleatória visualmente
-            const visual = pool[Math.floor(randomControlado() * pool.length)];
+            const visual = pool[Math.floor(Math.random() * pool.length)];
             ui.display.innerText = visual;
             tocarSom('click');
             giros++;
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(roleta);
                 
                 // Escolha FINAL Real
-                const indexReal = MMath.floor(randomControlado() * pool.length);
+                const indexReal = Math.floor(Math.random() * pool.length);
                 const letraEscolhida = pool[indexReal];
                 
                 finalizarSorteio(letraEscolhida);
