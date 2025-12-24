@@ -1,0 +1,68 @@
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #0f0f13;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+.container {
+    background-color: #1a1a20;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    border: 1px solid #333;
+    position: relative;
+}
+
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+h2 { color: #BB86FC; letter-spacing: 1px; margin: 0; }
+.icon-btn { background: none; border: none; color: #666; font-size: 1.5rem; cursor: pointer; }
+
+/* Configurações */
+.settings-panel { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; background: #25252e; padding: 8px; border-radius: 10px; }
+.switch-container { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; cursor: pointer; }
+
+/* Categorias */
+.category-box { background: #2c2c35; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #03DAC5; }
+.cat-label { font-size: 0.75rem; color: #aaa; }
+.cat-text { font-size: 1.1rem; font-weight: bold; margin: 5px 0; }
+.small-btn { background: #444; border: none; color: #ccc; padding: 4px 8px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; }
+
+/* Display */
+#display-letra {
+    font-size: 5.5rem; font-weight: bold; color: #BB86FC;
+    height: 120px; display: flex; align-items: center; justify-content: center;
+    text-shadow: 0 0 20px rgba(187,134,252,0.3); margin: 10px 0;
+}
+
+/* Botões */
+.main-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+button { padding: 12px; border-radius: 10px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+#btn-sortear { background: #6200EE; color: white; flex-grow: 1; font-size: 1.1rem; box-shadow: 0 4px 0 #3700B3; }
+#btn-sortear:active { transform: translateY(4px); box-shadow: none; }
+#btn-sortear:disabled { background: #333; color: #555; box-shadow: none; }
+#btn-reset { background: #cf6679; color: #000; width: 80px; }
+
+/* Timer e Input */
+.controls-qty input { background: #333; color: #fff; border: 1px solid #555; padding: 5px; width: 50px; text-align: center; border-radius: 5px; }
+.timer-container { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+#tempo-restante { font-family: monospace; font-size: 2rem; color: #03DAC5; margin-bottom: 5px; }
+.timer-controls button { background: #444; color: #fff; padding: 8px 15px; }
+.timer-controls select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 5px; }
+
+/* Histórico */
+.history-container { border-top: 1px solid #333; padding-top: 10px; }
+.history-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; list-style: none; margin-top: 10px; }
+.bola-historico {
+    width: 32px; height: 32px; background: #333; border: 1px solid #555; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #BB86FC; font-weight: bold;
+}

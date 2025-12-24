@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f0f13">
+    <title>Stop Master Pro</title>
+    
+    <link rel="stylesheet" href="/stylles.css">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h2>Stop Master <span style="color:#03DAC5; font-size:0.6em;">PWA</span></h2>
+                <button id="btn-fullscreen" class="icon-btn" title="Tela Cheia">⛶</button>
+            </div>
+            
+            <div class="settings-panel">
+                <label class="switch-container">
+                    <input type="checkbox" id="chk-som" checked>
+                    <span class="checkmark">🔊 Som</span>
+                </label>
+                <label class="switch-container">
+                    <input type="checkbox" id="chk-kxy">
+                    <span class="checkmark">🚫 Sem K,W,Y</span>
+                </label>
+            </div>
+        </header>
+
+        <div class="category-box">
+            <span class="cat-label">Sugestão de Tema:</span>
+            <div id="tema-atual" class="cat-text">Toque para sortear</div>
+            <button id="btn-trocar-tema" class="small-btn">🎲 Trocar Tema</button>
+        </div>
+        
+        <div class="controls-qty">
+            <label>Letras:</label>
+            <input type="number" id="quantidade" value="1" min="1" max="3" placeholder="Quantidade de letras">
+        </div>
+
+        <div class="display-letra" id="display-letra">?</div>
+
+        <div class="main-actions">
+            <button type="button" id="btn-sortear">SORTEAR</button>
+            <button type="button" id="btn-reset" title="Reiniciar Jogo">↻ Reset</button>
+        </div>
+
+        <div class="timer-container">
+            <div id="tempo-restante">00:00</div>
+            <div class="timer-controls">
+                <select id="config-segundos" title="Duração do temporizador">
+                    <option value="30">30s</option>
+                    <option value="60" selected>1m</option>
+                    <option value="90">1m 30s</option>
+                    <option value="120">2m</option>
+                </select>
+                <button type="button" id="btn-timer-start">▶ Go</button>
+                <button type="button" id="btn-timer-stop">⏹ Stop</button>
+            </div>
+        </div>
+
+        <div class="history-container">
+            <div class="history-label">Histórico (<span id="contador">0</span>/26):</div>
+            <ul class="history-list" id="history-list"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

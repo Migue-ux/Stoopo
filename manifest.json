@@ -1,0 +1,20 @@
+{
+  "name": "Stop Master Sorteador",
+  "short_name": "StopMaster",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f13",
+  "theme_color": "#0f0f13",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1250/1250588.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1250/1250588.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
