@@ -32,7 +32,7 @@ h2 { color: #BB86FC; letter-spacing: 1px; margin: 0; }
 .switch-container { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; cursor: pointer; }
 
 /* Categorias */
-.category-box { background: #2c2c35; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #03DAC5; }
+.category-box { background: #2c2c35; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #662cee; }
 .cat-label { font-size: 0.75rem; color: #aaa; }
 .cat-text { font-size: 1.1rem; font-weight: bold; margin: 5px 0; }
 .small-btn { background: #444; border: none; color: #ccc; padding: 4px 8px; font-size: 0.7rem; border-radius: 4px; cursor: pointer; }
@@ -55,7 +55,7 @@ button { padding: 12px; border-radius: 10px; font-weight: bold; border: none; cu
 /* Timer e Input */
 .controls-qty input { background: #333; color: #fff; border: 1px solid #555; padding: 5px; width: 50px; text-align: center; border-radius: 5px; }
 .timer-container { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
-#tempo-restante { font-family: monospace; font-size: 2rem; color: #03DAC5; margin-bottom: 5px; }
+#tempo-restante { font-family: monospace; font-size: 2rem; color: #7f38f0; margin-bottom: 5px; }
 .timer-controls button { background: #444; color: #fff; padding: 8px 15px; }
 .timer-controls select { background: #222; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 5px; }
 
