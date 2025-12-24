@@ -1,32 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DADOS E CONFIGURAÇÕES ---
-    const alfabetoCompleto = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    const letrasDificeis = ['K', 'W', 'Y'];
-    const sugestoesTemas = [
-        "Minha Sogra é...", "Nome de Pobre", "Coisa que tem na Geladeira", 
-        "Motivo de Divórcio", "Animal Chifrudo", "Marca de Carro", 
-        "Presente Ruim", "Profissão", "Filme ou Série", "Lugar para esconder corpo"
-    ];
+    console.log("Stop Master Pro Iniciado");
 
-    // Estado do Jogo (O que será salvo)
+    // --- 1. DADOS ---
+    const alfabeto = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const letrasKWY = ['K', 'W', 'Y'];
+    const temas = ["Minha Sogra é...", "Nome de Pobre", "Motivo de Briga", "Animal", "Comida Ruim", "Profissão", "Filme", "Lugar"];
+    
+    // Estado Global (O que o jogo lembra)
     let estado = {
-        letrasUsadas: [],
+        usadas: [], // Letras que já saíram
         modoJogo: false,
-        temaAtual: "Toque para sortear"
+        tema: "Toque para sortear"
     };
 
     let audioCtx = null;
-    let intervaloTimer;
-    let poolAtual = []; // Letras que sobraram para sortear
+    let timerInterval;
 
-    // --- ELEMENTOS DO DOM (INTERFACE) ---
+    // --- 2. PEGAR ELEMENTOS (DOM) ---
+    // Se algum ID estiver errado no HTML, daria erro aqui. Agora está blindado.
     const ui = {
         display: document.getElementById('display-letra'),
         btnSortear: document.getElementById('btn-sortear'),
         btnReset: document.getElementById('btn-reset'),
         listaHistorico: document.getElementById('history-list'),
         contador: document.getElementById('contador'),
-        inputQtd: document.getElementById('quantidade'),
         chkSom: document.getElementById('chk-som'),
         chkKXY: document.getElementById('chk-kxy'),
         tempo: document.getElementById('tempo-restante'),
@@ -34,113 +31,95 @@ document.addEventListener('DOMContentLoaded', () => {
         btnTimerStop: document.getElementById('btn-timer-stop'),
         selSegundos: document.getElementById('config-segundos'),
         
-        // Área do Jogo (Stop)
+        // Modo Jogo
         btnMode: document.getElementById('btn-mode-toggle'),
         gameSheet: document.getElementById('game-sheet'),
         extraControls: document.getElementById('extra-controls'),
         gameInputs: document.querySelectorAll('.game-input'),
         btnStop: document.getElementById('btn-stop-game'),
         container: document.querySelector('.container'),
+        btnFullscreen: document.getElementById('btn-fullscreen'),
         
-        // Área de Temas
+        // Tema
         temaTexto: document.getElementById('tema-atual'),
         btnTema: document.getElementById('btn-trocar-tema')
     };
 
-    // --- INICIALIZAÇÃO ---
-    carregarJogoSalvo();
-    atualizarPoolDeLetras();
+    // Inicializa carregando dados salvos
+    carregarEstado();
 
-    // Registrar Service Worker (Para funcionar como App)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
-
-    // --- FUNÇÕES DE LÓGICA ---
-
-    function atualizarPoolDeLetras() {
-        // Pega o alfabeto todo e remove o que já foi usado
-        let base = alfabetoCompleto.filter(l => !estado.letrasUsadas.includes(l));
+    // --- 3. LÓGICA DE SORTEIO (CORRIGIDA) ---
+    ui.btnSortear.addEventListener('click', () => {
+        iniciarAudioContext(); // Libera o som no navegador
         
-        // Se a caixa "Sem KWY" estiver marcada, remove elas também
+        // 1. Descobrir quais letras sobraram
+        let pool = alfabeto.filter(letra => !estado.usadas.includes(letra));
+        
+        // 2. Filtrar K, W, Y se necessário
         if (ui.chkKXY.checked) {
-            base = base.filter(l => !letrasDificeis.includes(l));
+            pool = pool.filter(letra => !letrasKWY.includes(letra));
         }
-        poolAtual = base;
-        
-        // Verifica se acabou
-        if (poolAtual.length === 0 && estado.letrasUsadas.length > 0) {
+
+        // 3. Verificação de Segurança: Acabaram as letras?
+        if (pool.length === 0) {
+            alert("Todas as letras já saíram! Clique em Reset.");
             ui.btnSortear.innerText = "FIM";
             ui.btnSortear.disabled = true;
+            return;
+        }
+
+        // 4. Animação da Roleta
+        ui.btnSortear.disabled = true;
+        let giros = 0;
+        
+        const roleta = setInterval(() => {
+            // Mostra letra aleatória visualmente
+            const visual = pool[Math.floor(Math.random() * pool.length)];
+            ui.display.innerText = visual;
+            tocarSom('click');
+            giros++;
+
+            // Parar a roleta
+            if (giros >= 12) {
+                clearInterval(roleta);
+                
+                // Escolha FINAL Real
+                const indexReal = Math.floor(Math.random() * pool.length);
+                const letraEscolhida = pool[indexReal];
+                
+                finalizarSorteio(letraEscolhida);
+            }
+        }, 80);
+    });
+
+    function finalizarSorteio(letra) {
+        ui.display.innerText = letra;
+        estado.usadas.push(letra); // Adiciona na lista de bloqueio
+        
+        adicionarHistoricoVisual(letra);
+        tocarSom('win');
+        salvarEstado();
+
+        // Se estiver no Modo Jogo, prepara os inputs
+        if (estado.modoJogo) {
+            iniciarRodadaJogo();
         } else {
-            ui.btnSortear.innerText = "SORTEAR";
             ui.btnSortear.disabled = false;
         }
     }
 
-    function sortear() {
-        iniciarAudio();
-        atualizarPoolDeLetras(); // Garante que a lista está atualizada
-
-        if (poolAtual.length === 0) {
-            alert("Todas as letras já saíram! Clique em Reset.");
-            return;
-        }
-
-        ui.btnSortear.disabled = true;
-        let giros = 0;
-        
-        // Efeito visual de roleta
-        const intervalo = setInterval(() => {
-            const letraRandom = poolAtual[Math.floor(Math.random() * poolAtual.length)];
-            ui.display.innerText = letraRandom;
-            tocarSom('click');
-            giros++;
-
-            // Para a roleta após 10 giros
-            if (giros >= 10) {
-                clearInterval(intervalo);
-                confirmarLetra(letraRandom); // Confirma a letra que parou visualmente? Não, melhor pegar uma real do pool.
-                
-                // Sorteio real final (para garantir que é válida)
-                const indexFinal = Math.floor(Math.random() * poolAtual.length);
-                const letraFinal = poolAtual[indexFinal];
-                
-                ui.display.innerText = letraFinal;
-                finalizarRodada(letraFinal);
-            }
-        }, 80);
-    }
-
-    function finalizarRodada(letra) {
-        estado.letrasUsadas.push(letra);
-        ui.btnSortear.disabled = false;
-        
-        tocarSom('win');
-        adicionarBolaHistorico(letra);
-        atualizarPoolDeLetras();
-        salvarJogo();
-
-        // Se o modo jogo estiver ativo, libera os campos e inicia o timer
-        if (estado.modoJogo) {
-            prepararRodadaJogo();
-        }
-    }
-
-    // --- MODO JOGO (STOP DIGITAL) ---
-
-    function alternarModoJogo() {
+    // --- 4. MODO JOGO (STOP) ---
+    ui.btnMode.addEventListener('click', () => {
         estado.modoJogo = !estado.modoJogo;
-        aplicarVisualModoJogo();
-        salvarJogo();
-    }
+        atualizarInterfaceModo();
+        salvarEstado();
+    });
 
-    function aplicarVisualModoJogo() {
+    function atualizarInterfaceModo() {
         if (estado.modoJogo) {
             ui.gameSheet.classList.remove('hidden');
             ui.extraControls.classList.add('hidden');
             ui.container.classList.add('compact-mode');
-            ui.inputQtd.value = 1; // Força 1 letra
         } else {
             ui.gameSheet.classList.add('hidden');
             ui.extraControls.classList.remove('hidden');
@@ -148,83 +127,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function prepararRodadaJogo() {
+    function iniciarRodadaJogo() {
         ui.gameInputs.forEach(input => {
             input.value = "";
-            input.disabled = false; // Destrava
+            input.disabled = false;
             input.style.borderColor = "#555";
         });
         ui.btnStop.disabled = false;
         ui.btnStop.innerText = "✋ STOP!";
         ui.btnStop.style.background = "#cf6679";
         
-        // Foca no primeiro campo
         setTimeout(() => ui.gameInputs[0].focus(), 100);
-        
-        // Inicia timer sozinho
-        iniciarTimer();
+        iniciarCronometro();
     }
 
-    function pararJogoStop() {
-        pararTimer();
+    ui.btnStop.addEventListener('click', () => {
+        pararCronometro();
         tocarSom('alarm');
-        dispararConfete();
+        confete();
         
-        // Trava tudo
-        ui.gameInputs.forEach(input => {
-            input.disabled = true;
-            if(input.value.trim() !== "") input.style.borderColor = "#03DAC5"; // Verde se preencheu
-        });
+        ui.gameInputs.forEach(input => input.disabled = true);
+        ui.btnStop.innerText = "PAROU!";
         ui.btnStop.disabled = true;
-        ui.btnStop.innerText = "TEMPO ESGOTADO";
         ui.btnStop.style.background = "#333";
-    }
+        ui.btnSortear.disabled = false;
+    });
 
-    // --- SISTEMA DE SAVE (LOCAL STORAGE) ---
+    // --- 5. UTILITÁRIOS (Timer, Tema, Reset) ---
+    
+    // Timer
+    function iniciarCronometro() {
+        clearInterval(timerInterval);
+        let tempo = parseInt(ui.selSegundos.value);
+        atualizarVisorTempo(tempo);
+        ui.btnTimerStart.disabled = true;
 
-    function salvarJogo() {
-        localStorage.setItem('stopMaster_v3', JSON.stringify(estado));
-    }
-
-    function carregarJogoSalvo() {
-        const salvo = localStorage.getItem('stopMaster_v3');
-        if (salvo) {
-            estado = JSON.parse(salvo);
+        timerInterval = setInterval(() => {
+            tempo--;
+            atualizarVisorTempo(tempo);
             
-            // Restaura histórico visual
-            ui.listaHistorico.innerHTML = '';
-            estado.letrasUsadas.forEach(l => adicionarBolaHistorico(l));
+            if (tempo <= 5 && tempo > 0) tocarSom('tick'); // Tic Tac no final
             
-            // Restaura última letra
-            if (estado.letrasUsadas.length > 0) {
-                ui.display.innerText = estado.letrasUsadas[estado.letrasUsadas.length - 1];
+            if (tempo <= 0) {
+                if (estado.modoJogo) ui.btnStop.click(); // Auto-stop
+                else {
+                    pararCronometro();
+                    tocarSom('alarm');
+                }
             }
-
-            // Restaura tema
-            ui.temaTexto.innerText = estado.temaAtual;
-
-            // Restaura modo de jogo
-            aplicarVisualModoJogo();
-        }
+        }, 1000);
     }
 
-    function resetarTudo() {
-        if(confirm("Tem certeza? Isso apagará todo o histórico.")) {
-            localStorage.removeItem('stopMaster_v3');
+    function pararCronometro() {
+        clearInterval(timerInterval);
+        ui.btnTimerStart.disabled = false;
+        ui.tempo.style.color = "#fff";
+    }
+    
+    ui.btnTimerStart.addEventListener('click', () => { iniciarAudioContext(); iniciarCronometro(); });
+    ui.btnTimerStop.addEventListener('click', pararCronometro);
+
+    function atualizarVisorTempo(s) {
+        const min = Math.floor(s / 60).toString().padStart(2, '0');
+        const seg = (s % 60).toString().padStart(2, '0');
+        ui.tempo.innerText = `${min}:${seg}`;
+        if (s <= 10) ui.tempo.style.color = "#ff4444";
+    }
+
+    // Temas
+    ui.btnTema.addEventListener('click', () => {
+        const novoTema = temas[Math.floor(Math.random() * temas.length)];
+        ui.temaTexto.innerText = novoTema;
+        estado.tema = novoTema;
+        salvarEstado();
+    });
+
+    // Reset Total
+    ui.btnReset.addEventListener('click', () => {
+        if(confirm("Reiniciar tudo?")) {
+            localStorage.removeItem('stopGame_v4');
             location.reload();
         }
-    }
+    });
 
-    // --- UTILITÁRIOS (Timer, Som, Historico) ---
+    ui.btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else if (document.exitFullscreen) document.exitFullscreen();
+    });
 
-    function trocarTema() {
-        const random = sugestoesTemas[Math.floor(Math.random() * sugestoesTemas.length)];
-        ui.temaTexto.innerText = random;
-        estado.temaAtual = random;
-        salvarJogo();
-    }
+    // --- 6. FUNÇÕES AUXILIARES (Save, Audio, Visual) ---
 
-    function adicionarBolaHistorico(letra) {
+    function adicionarHistoricoVisual(letra) {
         const li = document.createElement('li');
         li.innerText = letra;
         li.className = 'bola-historico';
@@ -232,48 +225,31 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.contador.innerText = ui.listaHistorico.children.length;
     }
 
-    function iniciarTimer() {
-        clearInterval(intervaloTimer);
-        let tempo = parseInt(ui.selSegundos.value);
-        atualizaVisor(tempo);
-        ui.btnTimerStart.disabled = true;
-
-        intervaloTimer = setInterval(() => {
-            tempo--;
-            atualizaVisor(tempo);
-            
-            // Bônus: Tic-Tac nos últimos 10 segundos
-            if (tempo <= 10 && tempo > 0) tocarSom('tick');
-
-            if (tempo <= 0) {
-                pararTimer();
-                if (estado.modoJogo) pararJogoStop(); // Auto-stop
-                else tocarSom('alarm');
-            }
-        }, 1000);
+    function salvarEstado() {
+        localStorage.setItem('stopGame_v4', JSON.stringify(estado));
     }
 
-    function pararTimer() {
-        clearInterval(intervaloTimer);
-        ui.btnTimerStart.disabled = false;
-        ui.tempo.style.color = "#fff"; // Volta a cor normal
+    function carregarEstado() {
+        const salvo = localStorage.getItem('stopGame_v4');
+        if (salvo) {
+            estado = JSON.parse(salvo);
+            // Reconstrói histórico
+            estado.usadas.forEach(l => adicionarHistoricoVisual(l));
+            if (estado.usadas.length > 0) ui.display.innerText = estado.usadas[estado.usadas.length - 1];
+            ui.temaTexto.innerText = estado.tema;
+            atualizarInterfaceModo();
+        }
     }
 
-    function atualizaVisor(s) {
-        const min = Math.floor(s/60).toString().padStart(2,'0');
-        const seg = (s%60).toString().padStart(2,'0');
-        ui.tempo.innerText = `${min}:${seg}`;
-        
-        // Fica vermelho no fim
-        if (s <= 10) ui.tempo.style.color = "#cf6679";
-        else ui.tempo.style.color = "#7f38f0";
+    // Áudio Sintetizado (Não precisa de arquivos mp3)
+    function iniciarAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    // --- SINTETIZADOR DE ÁUDIO ---
-    function iniciarAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    
     function tocarSom(tipo) {
         if (!ui.chkSom.checked || !audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -281,40 +257,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const t = audioCtx.currentTime;
 
         if (tipo === 'click') {
-            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
             gain.gain.setValueAtTime(0.05, t);
-            osc.stop(t+0.05);
-        } else if (tipo === 'tick') { // Som de relógio
-            osc.frequency.setValueAtTime(800, t);
-            gain.gain.setValueAtTime(0.02, t);
-            osc.stop(t+0.05);
-        } else if (tipo === 'win') {
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } 
+        else if (tipo === 'win') {
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(300, t);
-            osc.frequency.linearRampToValueAtTime(600, t+0.1);
-            gain.gain.exponentialRampToValueAtTime(0.001, t+0.5);
-            osc.stop(t+0.5);
-        } else if (tipo === 'alarm') {
+            osc.frequency.linearRampToValueAtTime(600, t + 0.2);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+            osc.start(t); osc.stop(t + 0.5);
+        }
+        else if (tipo === 'alarm') {
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(100, t);
-            osc.frequency.linearRampToValueAtTime(50, t+0.5);
-            gain.gain.linearRampToValueAtTime(0.001, t+0.5);
-            osc.stop(t+0.5);
+            osc.frequency.linearRampToValueAtTime(50, t + 0.5);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
+            osc.start(t); osc.stop(t + 0.5);
         }
-        osc.start(t);
+        else if (tipo === 'tick') {
+            osc.frequency.setValueAtTime(800, t);
+            gain.gain.setValueAtTime(0.05, t);
+            osc.stop(t + 0.05);
+            osc.start(t);
+        }
     }
 
-    function dispararConfete() {
-        if(typeof confetti === 'function') confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+    function confete() {
+        if (window.confetti) {
+            window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }
     }
-
-    // --- EVENT LISTENERS ---
-    ui.btnSortear.addEventListener('click', sortear);
-    ui.btnReset.addEventListener('click', resetarTudo);
-    ui.btnMode.addEventListener('click', alternarModoJogo);
-    ui.btnStop.addEventListener('click', pararJogoStop);
-    ui.btnTimerStart.addEventListener('click', iniciarTimer);
-    ui.btnTimerStop.addEventListener('click', pararTimer);
-    ui.btnTema.addEventListener('click', trocarTema);
-    ui.chkKXY.addEventListener('change', atualizarPoolDeLetras);
 });
